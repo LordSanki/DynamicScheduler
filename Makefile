@@ -6,7 +6,7 @@ CFLAGS  = $(INCLUDE) -g -Wall
 LFLAGS  =
 LIBS    =
 
-SRC     = main.cpp DispatchQueue.cpp ExecutionQueue.cpp SchedulerQueue.cpp
+SRC     = main.cpp DispatchQueue.cpp ExecutionQueue.cpp SchedulerQueue.cpp Instruction.cpp
 HEADERS = DispatchQueue.h ExecutionQueue.h Instruction.h RegisterFile.h SchedulerQueue.h TraceReader.h
 
 TARGET  = sim

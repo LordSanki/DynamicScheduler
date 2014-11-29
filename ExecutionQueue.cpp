@@ -12,8 +12,8 @@ ExecutionQueue::ExecutionQueue(int size, ReorderBuffer &buf, RegisterFile &file)
 
 bool ExecutionQueue::push(ROBIndex index)
 {
-  if((int)queue.size() > max_size)
-    return false;
+//  if((int)queue.size() > max_size)
+  //  return false;
   queue.push_back(index);
   return true;
 }
@@ -26,7 +26,7 @@ void ExecutionQueue::execute( SchedulerQueue *sQueue )
     rob[*it].timer++;
     if( latency_expired(rob[*it]) )
     {
-      rob[*it].state = WB;
+      rob[*it].state(WB);
       sQueue->wake(rob[*it].dest);
       rFile.update(rob[*it].dest);
       *it = -1;

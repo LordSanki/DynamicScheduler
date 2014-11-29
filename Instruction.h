@@ -23,62 +23,49 @@ typedef std::vector<ROBIndex> InsPipe;
 class Instruction
 {
   public:
-    States state;
-    int src1;
+    struct TimingStats
+    {
+      int start;
+      int end;
+      TimingStats() {start = -1; end = -1;}
+    };
+
+  public:
+    int src1,s1;
     bool s1_ready;
-    int src2;
+    int src2,s2;
     bool s2_ready;
-    int dest;
+    int dest,d;
     int op;
     int timer;
-    bool ready() { return s2_ready&&s1_ready; }
-    void update_src(int name)
-    {
-      s1_ready = s1_ready || (name == src1);
-      s2_ready = s2_ready || (name == src2);
-    }
-    Instruction()
-    {
-      src1 = src2 = dest = -1;
-      s1_ready = s2_ready = false;
-      op = 0;
-      timer = 0;
-      state = IF;
-    }
+
+  private:
+    static int clock;
+    States _state;
+    std::map<States,TimingStats> tStats;
+
+  public:
+    bool ready();
+    void update_src(int name);
+    Instruction(int op_, int s1_, int s2_, int d_);
+    Instruction();
+    void state(States s);
+    States state();
+    const TimingStats & operator[] (States);
+    static int cycles();
+    static void tick();
 };
 
 class ReorderBuffer
 {
   public:
-    ReorderBuffer()
-    {
-      offset =  REGISTER_FILE_SIZE;
-      ret_index = 0;
-      _size = 0;
-    }
-    Instruction & operator[] (int index) { return buff[index-offset]; }
-    void retire()
-    {
-      int k=ret_index;
-      for(int i=0; i<_size; i++)
-      {
-        if(buff[k].state == WB)
-        {
-          buff[k].state = RET;
-          _size--;
-          //buff.pop_front();
-          //offset++;
-          i--;
-          ret_index++;
-        }
-        else
-          break;
-        k++;
-      }
-    }
-    void push(Instruction & ins) { buff.push_back(ins); _size++; cout<<"Size:"<<_size<<endl;}
-    int size() { return (ret_index + _size + offset); }
-    operator bool() { return (_size > 0); }
+    ReorderBuffer();
+    Instruction & operator[] (int index);
+    void retire();
+    void push(Instruction & ins);
+    int size();
+    operator bool();
+    void prepare_result();
   private:
     std::vector<Instruction> buff;
     int offset, ret_index, _size;

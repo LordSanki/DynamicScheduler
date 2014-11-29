@@ -1,18 +1,21 @@
 #include <DispatchQueue.h>
 #include <SchedulerQueue.h>
-
+#include <iostream>
+using namespace std;
 DispatchQueue::DispatchQueue(int size, ReorderBuffer &buf, TraceReader &reader)
              :rob(buf),tr(reader)
 {
-  max_size = size;
+  max_size = 2*size;
   bw = size;
+  num_ins=0;
 }
 void DispatchQueue::fetch()
 {
   for(InsList::iterator it = queue.begin();
       it!= queue.end(); it++)
   {
-    rob[*it].state = ID;
+    if(rob[*it].state() == IF)
+      rob[*it].state(ID);
   }
 
   for(int i=0; i<bw; i++)
@@ -20,13 +23,10 @@ void DispatchQueue::fetch()
     if(!tr) break;
     if(push(rob.size()))
     {
-      Instruction ins;
-      ins.state = IF;
-      ins.src1  = tr.s1();
-      ins.src2  = tr.s2();
-      ins.dest  = tr.dest();
-      ins.op    = tr.op();
+      Instruction ins(tr.op(),tr.s1(),tr.s2(),tr.dest());
+      ins.state(IF);
       rob.push(ins);
+      tr++;
     }
     else
       break;
@@ -34,46 +34,32 @@ void DispatchQueue::fetch()
 }
 void DispatchQueue::dispatch(SchedulerQueue *sQueue)
 {
-  for(int i=0; i<bw; i++)
+  int bw_left = bw;
+  for(InsList::iterator it = queue.begin();
+      (it != queue.end())&&(bw_left>0); it++)
   {
-    int index = peek();
-    if(invalid_index(index))
-      break;
-    else if(rob[index].state != ID)
-      break;
-    else if(sQueue->push(index))
-      (void)pop();
-    else
-      break;
+    if(invalid_index(*it)) break;
+    if(rob[*it].state() == ID)
+    {
+      if(sQueue->push(*it))
+      {
+        rob[*it].state(IS);
+        *it = -1;
+        bw_left--;
+      }
+    }
   }
+  queue.remove_if(invalid_index);
 }
 
 bool DispatchQueue::push(ROBIndex index)
 {
   if((int)queue.size() < max_size)
   {
+    num_ins++;
     queue.push_back(index);
     return true;
   }
   return false;
-}
-ROBIndex DispatchQueue::pop()
-{
-  if(queue.size() > 0)
-  {
-    ROBIndex index = queue.front();
-    queue.pop_front();
-    return index;
-  }
-  return -1;
-}
-ROBIndex DispatchQueue::peek()
-{
-  if(queue.size() > 0)
-  {
-    ROBIndex index = queue.front();
-    return index;
-  }
-  return -1;
 }
 
