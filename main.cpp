@@ -16,15 +16,20 @@ void print_stats(ReorderBuffer &rob);
 
 int main(int argc, char **argv)
 {
-  if( argc < 4 )
+  if( argc < 9 )
   {
     cout<<"invalid number of arguments"<<endl;
     cout<<"sim <S> <N> <BLOCK_SIZE> <L1_SIZE> <L1_ASSOC> <L2_SIZE> <L2_ASSOC> <TRACE_FILE>"<<endl;
     return -1;
   }
-  int superscale_degree   = atoi( argv[1] );
-  int scheduler_size      = atoi( argv[2] );
-  char * filename         = argv[3];
+  int scheduler_size      = atoi( argv[1] );
+  int superscale_degree   = atoi( argv[2] );
+  int blk_size            = atoi( argv[3] );
+  int l1_size             = atoi( argv[4] );
+  int l1_assoc            = atoi( argv[5] );
+  int l2_size             = atoi( argv[6] );
+  int l2_assoc            = atoi( argv[7] );
+  char * filename         = argv[8];
 
   RegisterFile rfile;
   ReorderBuffer rob;
@@ -40,7 +45,6 @@ int main(int argc, char **argv)
     sQ->issue(eQ);
     dQ->dispatch(sQ);
     dQ->fetch();
-  //  tr++;
     Instruction::tick();
   }while(rob);
   rob.prepare_result();
