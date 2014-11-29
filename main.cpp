@@ -22,6 +22,7 @@ int main(int argc, char **argv)
     cout<<"sim <S> <N> <BLOCK_SIZE> <L1_SIZE> <L1_ASSOC> <L2_SIZE> <L2_ASSOC> <TRACE_FILE>"<<endl;
     return -1;
   }
+  // parsing input arguments
   int scheduler_size      = atoi( argv[1] );
   int superscale_degree   = atoi( argv[2] );
   int blk_size            = atoi( argv[3] );
@@ -31,25 +32,53 @@ int main(int argc, char **argv)
   int l2_assoc            = atoi( argv[7] );
   char * filename         = argv[8];
 
-  RegisterFile rfile;
-  ReorderBuffer rob;
-  TraceReader tr = TraceReader(filename);
+  // creating register file
+  RegisterFile *rfile = new RegisterFile();
+  // creating fake reorder buffer
+  ReorderBuffer *rob = new ReorderBuffer();
+  // creating tracefile reader
+  TraceReader *tr = new TraceReader(filename);
 
-  DispatchQueue  *dQ = new DispatchQueue(superscale_degree, rob, tr);
-  SchedulerQueue *sQ = new SchedulerQueue(scheduler_size, superscale_degree, rob, rfile);
-  ExecutionQueue *eQ = new ExecutionQueue(superscale_degree, rob, rfile);
+  // creating dispatch queue
+  DispatchQueue  *dQ = new DispatchQueue(superscale_degree, *rob, *tr);
+  // creating scheduler queue
+  SchedulerQueue *sQ = new SchedulerQueue(scheduler_size, superscale_degree, *rob, *rfile);
+  // creating execution queue
+  ExecutionQueue *eQ = new ExecutionQueue(superscale_degree, *rob, *rfile);
+
+  // looping over instruction in trace file
   do
   {
-    rob.retire();
+    // retiting instruction after writeback
+    rob->retire();
+    // executing instructions
     eQ->execute(sQ);
+    // issueing instructions to execution queue
     sQ->issue(eQ);
+    // dispatching instructions to scheduler queue
     dQ->dispatch(sQ);
+    // fetching from trace file and adding to rob
     dQ->fetch();
+    // incrementing clock cycle
     Instruction::tick();
-  }while(rob);
-  rob.prepare_result();
-  print_stats(rob);
+    // checking if reorder buffer is empty
+    // this wil signify that all operations have finished
+  }while((*rob));
+
+  // preparing ReorderBuffer to readout results ie adjusting read heads etc
+  rob->prepare_result();
+  // printing instruction queue stats
+  print_stats(*rob);
+  // printing simulation configuration
   print_config(superscale_degree,scheduler_size,dQ,Instruction::cycles()-1);
+
+  // cleaning up
+  delete dQ;
+  delete sQ;
+  delete eQ;
+  delete rob;
+  delete rfile;
+  delete tr;
   return 0;
 }
 
