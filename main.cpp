@@ -7,12 +7,16 @@
 #include <DispatchQueue.h>
 #include <SchedulerQueue.h>
 #include <ExecutionQueue.h>
+#include <Cache.h>
+#include <MainMemory.h>
 
 using namespace std;
 
+using namespace CacheSimulator;
 
 void print_config(int N, int S, DispatchQueue *dQ, int cycles);
 void print_stats(ReorderBuffer &rob);
+void print_cache(Memory *m);
 
 int main(int argc, char **argv)
 {
@@ -39,12 +43,34 @@ int main(int argc, char **argv)
   // creating tracefile reader
   TraceReader *tr = new TraceReader(filename);
 
+  Cache *l1 = NULL;
+  if(blk_size > 0)
+  {
+    Memory *next;
+    if(l2_size > 0)
+    {
+      Memory * ram = new MainMemory();
+      ram->setData(20);
+      next = new Cache(blk_size, l2_size, l2_assoc, ReplacementPolicy::e_LRU, e_WBWA, ram);
+      next->setData(10);
+      next->name("L2");
+    }
+    else
+    {
+      next = new MainMemory();
+      next->setData(20);
+    }
+    l1 = new Cache(blk_size, l1_size, l1_assoc, ReplacementPolicy::e_LRU, e_WBWA, next);
+    l1->setData(5);
+    l1->init();
+    l1->name("L1");
+  }
   // creating dispatch queue
   DispatchQueue  *dQ = new DispatchQueue(superscale_degree, *rob, *tr);
   // creating scheduler queue
   SchedulerQueue *sQ = new SchedulerQueue(scheduler_size, superscale_degree, *rob, *rfile);
   // creating execution queue
-  ExecutionQueue *eQ = new ExecutionQueue(superscale_degree, *rob, *rfile);
+  ExecutionQueue *eQ = new ExecutionQueue(superscale_degree, *rob, *rfile, l1);
 
   // looping over instruction in trace file
   do
@@ -69,6 +95,9 @@ int main(int argc, char **argv)
   rob->prepare_result();
   // printing instruction queue stats
   print_stats(*rob);
+  // printing cache contents
+  if(l1)
+    print_cache(l1);
   // printing simulation configuration
   print_config(superscale_degree,scheduler_size,dQ,Instruction::cycles()-1);
 
@@ -107,3 +136,29 @@ void print_config(int N, int S, DispatchQueue *dQ, int cycles)
   printf("number of cycles       = %d\n",cycles);
   printf("IPC                    = %1.2f\n",(dQ->num_instructions()/(double)cycles));
 }
+
+void print_cache(Memory *m)
+{
+  Memory *next = m;
+  while(next->isCache())
+  {
+    Cache *c = (Cache*)next;
+    printf("%s CACHE CONTENTS\n",c->name().c_str());
+    printf("a. number of accesses :%d\n",c->reads());
+    printf("b. number of misses :%d\n",c->reads()-c->rhits());
+    for(ui32 i=0; i<c->set(); i++)
+    {
+      TagSet &set = c->tags(i);
+      cout<<"set "<<i<<": ";
+
+      for (ui32 j=0; j<set.size(); j++)
+      {
+        cout<<"   "<<hex<<set[j].tag()<<dec;
+      }
+      cout<<endl;
+    }
+    next = next->next();
+    cout<<endl;
+  }
+}
+

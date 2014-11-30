@@ -4,11 +4,15 @@
 #include <Instruction.h>
 #include <RegisterFile.h>
 class SchedulerQueue;
+namespace CacheSimulator {
+  class Cache;
+}
 
 class ExecutionQueue
 {
   public:
-    ExecutionQueue(int size, ReorderBuffer &buf, RegisterFile &file);
+    ExecutionQueue(int size, ReorderBuffer &buf,
+                     RegisterFile &file, CacheSimulator::Cache *c=NULL);
     bool push(ROBIndex index);
     void execute( SchedulerQueue *sQueue );
   private:
@@ -17,7 +21,8 @@ class ExecutionQueue
     RegisterFile &rFile;
     InsList queue;
     int latency_map[3];
-    bool latency_expired(const Instruction &ins);
+    CacheSimulator::Cache * cache;
+    bool latency_expired(Instruction &ins);
 };
 
 #endif //__EXECUTION_QUEUE_H__

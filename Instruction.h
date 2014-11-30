@@ -38,7 +38,7 @@ class Instruction
     int dest,d;
     int op;
     int timer;
-
+    unsigned long mem;
   private:
     static int clock;
     States _state;
@@ -47,7 +47,8 @@ class Instruction
   public:
     bool ready();
     void update_src(int name);
-    Instruction(int op_, int s1_, int s2_, int d_);
+    Instruction(int op_, int s1_, int s2_,
+                     int d_, unsigned long m_);
     Instruction();
     void state(States s);
     States state();

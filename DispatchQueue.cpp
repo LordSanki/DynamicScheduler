@@ -23,7 +23,7 @@ void DispatchQueue::fetch()
     if(!tr) break;
     if(push(rob.size()))
     {
-      Instruction ins(tr.op(),tr.s1(),tr.s2(),tr.dest());
+      Instruction ins(tr.op(),tr.s1(),tr.s2(),tr.dest(), tr.mem());
       ins.state(IF);
       rob.push(ins);
       tr++;

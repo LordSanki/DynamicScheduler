@@ -40,7 +40,6 @@ void SchedulerQueue::issue(ExecutionQueue *exQueue)
       if(exQueue->push(*it))
       {
         rob[*it].state(EX);
-        rob[*it].timer = 0;
         *it = -1;
         bw_left--;
       }

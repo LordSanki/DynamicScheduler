@@ -68,7 +68,7 @@ class TraceReader
         _nSrc2 = atoi(str);
 
       // parsing Mem address
-      addr = ((ui8*)strtok(buff, " \n\r\t"));
+      addr = ((ui8*)strtok(NULL, " \n\r\t"));
       if(str)
         _nMem = Ascii2Hex(addr);
 

@@ -5,12 +5,14 @@ using namespace std;
 int Instruction::clock;
 
 /*Instruction class*/
-Instruction::Instruction(int op_, int s1_, int s2_, int d_)
+Instruction::Instruction(int op_, int s1_, int s2_,
+                               int d_, unsigned long m_)
 {
   s1 = src1 = s1_; s2 = src2 = s2_; d = dest = d_;
   s1_ready = s2_ready = false;
   op = op_;
   timer = 0;
+  mem = m_;
   _state = IF;
   TimingStats s;
   tStats.insert(pair<States,TimingStats>(IF,s));
@@ -27,6 +29,7 @@ Instruction::Instruction()
   s1_ready = s2_ready = false;
   op = 0;
   timer = 0;
+  mem = 0;
   _state = IF;
   TimingStats s;
   tStats.insert(pair<States,TimingStats>(IF,s));
