@@ -11,6 +11,7 @@ DispatchQueue::DispatchQueue(int size, ReorderBuffer &buf, TraceReader &reader)
 }
 void DispatchQueue::fetch()
 {
+  // advanceing all previous instructions to ID
   for(InsList::iterator it = queue.begin();
       it!= queue.end(); it++)
   {
@@ -18,6 +19,8 @@ void DispatchQueue::fetch()
       rob[*it].state(ID);
   }
 
+  // fetching from trace file and adding entry in fake
+  // reorder buffer(rob)
   for(int i=0; i<bw; i++)
   {
     if(!tr) break;
@@ -32,9 +35,12 @@ void DispatchQueue::fetch()
       break;
   }
 }
+
 void DispatchQueue::dispatch(SchedulerQueue *sQueue)
 {
   int bw_left = bw;
+  // advancing all instructions in ID stage to IS stage
+  // maximum of N instructions can be moved fwd
   for(InsList::iterator it = queue.begin();
       (it != queue.end())&&(bw_left>0); it++)
   {
@@ -52,6 +58,7 @@ void DispatchQueue::dispatch(SchedulerQueue *sQueue)
   queue.remove_if(invalid_index);
 }
 
+// pushing index into queue if size is less than 2N
 bool DispatchQueue::push(ROBIndex index)
 {
   if((int)queue.size() < max_size)

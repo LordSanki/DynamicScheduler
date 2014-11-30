@@ -2,7 +2,7 @@ CC   = gcc
 CXX  = g++
 
 INCLUDE     = -I.
-CFLAGS  = $(INCLUDE) -g -Wall -Wno-unused-variable
+CFLAGS  = $(INCLUDE)
 LFLAGS  =
 LIBS    =
 
