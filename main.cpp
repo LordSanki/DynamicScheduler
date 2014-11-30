@@ -17,6 +17,7 @@ using namespace CacheSimulator;
 void print_config(int N, int S, DispatchQueue *dQ, int cycles);
 void print_stats(ReorderBuffer &rob);
 void print_cache(Memory *m);
+void print_csv(int N, int S, DispatchQueue *dQ, int cycles);
 
 int main(int argc, char **argv)
 {
@@ -93,6 +94,8 @@ int main(int argc, char **argv)
 
   // preparing ReorderBuffer to readout results ie adjusting read heads etc
   rob->prepare_result();
+
+#ifndef PRINT_CSV
   // printing instruction queue stats
   print_stats(*rob);
   // printing cache contents
@@ -100,7 +103,9 @@ int main(int argc, char **argv)
     print_cache(l1);
   // printing simulation configuration
   print_config(superscale_degree,scheduler_size,dQ,Instruction::cycles()-1);
-
+#else
+  print_csv(superscale_degree,scheduler_size,dQ,Instruction::cycles()-1);
+#endif
   // cleaning up
   delete dQ;
   delete sQ;
@@ -108,6 +113,8 @@ int main(int argc, char **argv)
   delete rob;
   delete rfile;
   delete tr;
+  if(l1)
+    delete l1;
   return 0;
 }
 
@@ -160,5 +167,10 @@ void print_cache(Memory *m)
     next = next->next();
     cout<<endl;
   }
+}
+
+void print_csv(int N, int S, DispatchQueue *dQ, int cycles)
+{
+  printf("%d,%d,%1.2f\n",N,S,(dQ->num_instructions()/(double)cycles));
 }
 
