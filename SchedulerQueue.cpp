@@ -9,9 +9,9 @@ SchedulerQueue::SchedulerQueue(int size, int bandwidth, ReorderBuffer &buf, Regi
   max_size = size; bw = bandwidth; queue.clear();
 }
 
-//int space() { return max_size - queue.size(); }
 bool SchedulerQueue::push(ROBIndex index) 
 {
+  // checking for size of queue
   if ((int)queue.size() < max_size)
   {
     queue.push_back(index);
@@ -32,6 +32,7 @@ bool SchedulerQueue::push(ROBIndex index)
 void SchedulerQueue::issue(ExecutionQueue *exQueue)
 {
   int bw_left = bw;
+  // advancing N ready instructions to EX stage 
   for( InsList::iterator it = queue.begin();
       (it!= queue.end())&&bw_left>0; it++)
   {
@@ -50,6 +51,7 @@ void SchedulerQueue::issue(ExecutionQueue *exQueue)
   queue.remove_if(invalid_index);
 }
 
+// snooping data from data bus b/w FU and Register File
 void SchedulerQueue::wake(int dest)
 {
   for( InsList::iterator it = queue.begin();

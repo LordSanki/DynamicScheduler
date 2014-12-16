@@ -14,6 +14,7 @@ class RegisterFile
     Register() {name = -1; ready=true;}
   };
   public:
+  // update register ready status if the name matches
   void update(int name)
   {
     if(name == -1) return;
@@ -25,6 +26,7 @@ class RegisterFile
     }
     map.erase(iter);
   }
+  // renaming register and setting ready status to false
   int rename(int reg, int name)
   {
     if(reg == -1|| name == -1) return -1;
