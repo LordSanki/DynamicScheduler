@@ -30,7 +30,7 @@ How to run simulator
 $> ./sim <arguments> > Result.txt
 ```
 
-Report
+Specs
 -------
-proj3.pdf file is hold analysis for the given tracefile and performance impact of different parameters on pipeline.
+proj3.pdf file is has the specifications of the algorithm
 
